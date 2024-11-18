@@ -1,4 +1,4 @@
-name: erofs & mount
+name: get APK (erofs & mount)
 
 on:
   workflow_dispatch:
