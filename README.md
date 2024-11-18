@@ -4,6 +4,8 @@ This GitHub Action extracts the Settings APK from a `.zip` firmware file for mos
 
 ## Usage
 
-1. Fork the repository and trigger the GitHub Action.
+- Fork the repository and trigger the GitHub Action.
 
-2. Alternatively, you can use the same commands in a Docker container or on your local machine if you prefer not to use GitHub Actions.
+___
+
+- Alternatively, you can use the same commands in a Docker container or on your local machine if you prefer not to use GitHub Actions.
