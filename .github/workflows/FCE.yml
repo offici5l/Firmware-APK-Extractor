@@ -1,0 +1,110 @@
+name: Extract Firmware
+
+on:
+  workflow_dispatch:
+    inputs:
+      firmware_url:
+        description: 'Please enter the firmware URL'
+        required: true
+        type: string
+      extract_type:
+        description: 'Select what to extract (apk, boot, both)'
+        required: true
+        type: choice
+        options:
+          - apk
+          - boot
+          - both
+
+jobs:
+  extract_firmware:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version and type
+        run: |
+          URL=${{ github.event.inputs.firmware_url }}
+          TYPE=${{ github.event.inputs.extract_type }}
+          VERSION=$(basename "$URL" .zip)
+          VERSION_NAME="Settings_${VERSION}"
+          echo "URL=$URL" >> $GITHUB_ENV
+          echo "TYPE=$TYPE" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+
+      - name: Setup dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install protobuf==5.27.2 six==1.16.0 bsdiff4==1.1.5 brotli==1.1.0
+          pip install zstandard
+          git clone https://github.com/vm03/payload_dumper.git
+          curl -L -o "erofs-utils.zip" "https://github.com/sekaiacg/erofs-utils/releases/download/v1.8.1-240810/erofs-utils-v1.8.1-gddbed144-Linux_x86_64-2408101422.zip"
+          unzip erofs-utils.zip -d erofs-utils_extracted
+
+      - name: Download firmware
+        run: |
+          echo "Downloading firmware..."
+          curl -L -o "firmware.zip" "$URL"
+          unzip firmware.zip -d firmware_extracted
+
+      - name: Extract files based on type
+        run: |
+          if [ "$TYPE" = "apk" ] || [ "$TYPE" = "both" ]; then
+            echo "Extracting APK..."
+            python3 payload_dumper/payload_dumper.py --images system_ext firmware_extracted/payload.bin
+            if ! ./erofs-utils_extracted/extract.erofs -i ./output/system_ext.img -x -o .; then
+              sudo mount -o loop ./output/system_ext.img /system_ext
+              mv /system_ext/priv-app/Settings/Settings.apk .
+              sudo umount /system_ext
+            else
+              mv ./system_ext/priv-app/Settings/Settings.apk .
+            fi
+            mv Settings.apk ${VERSION_NAME}.apk
+            zip ${VERSION_NAME}.zip ${VERSION_NAME}.apk
+          fi
+          
+          if [ "$TYPE" = "boot" ] || [ "$TYPE" = "both" ]; then
+            echo "Extracting boot.img..."
+            if find firmware_extracted -name "boot.img" -print -quit | grep -q 'boot.img'; then
+              mv firmware_extracted/boot.img ./boot.img
+              mv boot.img "boot-${VERSION}.img"
+              zip "boot-${VERSION}.zip" "boot-${VERSION}.img"
+            elif find firmware_extracted -name "payload.bin" -print -quit | grep -q 'payload.bin'; then
+              python3 payload_dumper/payload_dumper.py --images boot firmware_extracted/payload.bin
+              boot_img_path=$(find payload_dumper -name "boot.img" -print -quit)
+              if [ -n "$boot_img_path" ]; then
+                mv "$boot_img_path" "boot-${VERSION}.img"
+                zip "boot-${VERSION}.zip" "boot-${VERSION}.img"
+              else
+                echo "boot.img not found after extraction."
+                exit 1
+              fi
+            else
+              echo "Neither boot.img nor payload.bin found."
+              exit 1
+            fi
+          fi
+
+      - name: Create tag and release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$TYPE" = "apk" ] || [ "$TYPE" = "both" ]; then
+            TAG_NAME="apk"
+            if ! git fetch --tags && git tag | grep -q "$TAG_NAME"; then
+              git tag $TAG_NAME
+              git push origin $TAG_NAME
+            fi
+            gh release create "$TAG_NAME" ${VERSION_NAME}.zip
+          fi
+
+          if [ "$TYPE" = "boot" ] || [ "$TYPE" = "both" ]; then
+            TAG_NAME="boot"
+            if ! git fetch --tags && git tag | grep -q "$TAG_NAME"; then
+              git tag $TAG_NAME
+              git push origin $TAG_NAME
+            fi
+            gh release create "$TAG_NAME" boot-${VERSION}.zip
+          fi
