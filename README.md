@@ -1,9 +1,7 @@
 ## Firmware-Content-Extractor
 
-- extracts the Settings APK from a `.zip` firmware
+### Firmware-Content-Extractor is used to extract files from the firmware without needing to download the full firmware (using GitHub Actions).
 
-- extracts the boot.img from a `.zip` firmware
+- Extract Settings APK from the firmware.zip
 
-### Usage
-
-- Fork the repository and trigger the GitHub Action.
+- Extract boot.img from the firmware.zip
