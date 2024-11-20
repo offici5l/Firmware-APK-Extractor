@@ -1,110 +1,103 @@
-name: Extract Firmware
+name: extract_firmware
 
 on:
   workflow_dispatch:
     inputs:
       firmware_url:
-        description: 'Please enter the firmware URL'
+        description: 'enter the firmware.zip URL'
         required: true
         type: string
       extract_type:
-        description: 'Select what to extract (apk, boot, both)'
+        description: 'Select what to extract'
         required: true
         type: choice
         options:
-          - apk
-          - boot
+          - settings_apk
+          - boot_img
           - both
 
 jobs:
   extract_firmware:
     runs-on: ubuntu-latest
 
+    env:
+      BOOT_IMG: false
+      SETTINGS_APK: false
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FIRMWARE_URL: ${{ github.event.inputs.firmware_url }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract version and type
+      - name: Set environment
         run: |
-          URL=${{ github.event.inputs.firmware_url }}
-          TYPE=${{ github.event.inputs.extract_type }}
-          VERSION=$(basename "$URL" .zip)
-          VERSION_NAME="Settings_${VERSION}"
-          echo "URL=$URL" >> $GITHUB_ENV
-          echo "TYPE=$TYPE" >> $GITHUB_ENV
-          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          FIRMWARE_NAME=$(basename "${{ github.event.inputs.firmware_url }}" .zip)
+          echo "FIRMWARE_NAME=$FIRMWARE_NAME" >> $GITHUB_ENV
 
-      - name: Setup dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install protobuf==5.27.2 six==1.16.0 bsdiff4==1.1.5 brotli==1.1.0
-          pip install zstandard
-          git clone https://github.com/vm03/payload_dumper.git
-          curl -L -o "erofs-utils.zip" "https://github.com/sekaiacg/erofs-utils/releases/download/v1.8.1-240810/erofs-utils-v1.8.1-gddbed144-Linux_x86_64-2408101422.zip"
-          unzip erofs-utils.zip -d erofs-utils_extracted
+          if [ "${{ github.event.inputs.extract_type }}" == "both" ]; then
+            echo "BOOT_IMG=true" >> $GITHUB_ENV
+            echo "SETTINGS_APK=true" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.extract_type }}" == "boot_img" ]; then
+            echo "BOOT_IMG=true" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.extract_type }}" == "settings_apk" ]; then
+            echo "SETTINGS_APK=true" >> $GITHUB_ENV
+          fi
 
-      - name: Download firmware
-        run: |
-          echo "Downloading firmware..."
-          curl -L -o "firmware.zip" "$URL"
-          unzip firmware.zip -d firmware_extracted
+      - name: Cache pip and tools dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/lib/python3*/site-packages
+            tools
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/tools/*') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-
 
-      - name: Extract files based on type
+      - name: Install dependencies
         run: |
-          if [ "$TYPE" = "apk" ] || [ "$TYPE" = "both" ]; then
-            echo "Extracting APK..."
-            python3 payload_dumper/payload_dumper.py --images system_ext firmware_extracted/payload.bin
-            if ! ./erofs-utils_extracted/extract.erofs -i ./output/system_ext.img -x -o .; then
-              sudo mount -o loop ./output/system_ext.img /system_ext
-              mv /system_ext/priv-app/Settings/Settings.apk .
-              sudo umount /system_ext
-            else
-              mv ./system_ext/priv-app/Settings/Settings.apk .
-            fi
-            mv Settings.apk ${VERSION_NAME}.apk
-            zip ${VERSION_NAME}.zip ${VERSION_NAME}.apk
+          if [ ! -d tools ]; then
+            sudo apt-get update && sudo apt-get install -y python3-pip p7zip-full aria2
+            git clone https://github.com/vm03/payload_dumper.git tools
+            aria2c -o erofs-utils.zip https://github.com/sekaiacg/erofs-utils/releases/download/v1.8.1-240810/erofs-utils-v1.8.1-gddbed144-Linux_x86_64-2408101422.zip
+            7z x erofs-utils.zip -otools
+            pip install -r ./tools/requirements.txt
+            rm -f erofs-utils.zip
           fi
           
-          if [ "$TYPE" = "boot" ] || [ "$TYPE" = "both" ]; then
-            echo "Extracting boot.img..."
-            if find firmware_extracted -name "boot.img" -print -quit | grep -q 'boot.img'; then
-              mv firmware_extracted/boot.img ./boot.img
-              mv boot.img "boot-${VERSION}.img"
-              zip "boot-${VERSION}.zip" "boot-${VERSION}.img"
-            elif find firmware_extracted -name "payload.bin" -print -quit | grep -q 'payload.bin'; then
-              python3 payload_dumper/payload_dumper.py --images boot firmware_extracted/payload.bin
-              boot_img_path=$(find payload_dumper -name "boot.img" -print -quit)
-              if [ -n "$boot_img_path" ]; then
-                mv "$boot_img_path" "boot-${VERSION}.img"
-                zip "boot-${VERSION}.zip" "boot-${VERSION}.img"
-              else
-                echo "boot.img not found after extraction."
-                exit 1
-              fi
-            else
-              echo "Neither boot.img nor payload.bin found."
-              exit 1
-            fi
-          fi
-
-      - name: Create tag and release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract firmware name from URL
         run: |
-          if [ "$TYPE" = "apk" ] || [ "$TYPE" = "both" ]; then
-            TAG_NAME="apk"
-            if ! git fetch --tags && git tag | grep -q "$TAG_NAME"; then
-              git tag $TAG_NAME
-              git push origin $TAG_NAME
+          aria2c -x 7 -s 7 -k 1M --continue --max-tries=0 --log=LOG --out='exrom.zip' "$FIRMWARE_URL"
+          7z x exrom.zip -o./
+          rm exrom.zip
+
+          if [ "$BOOT_IMG" == "true" ]; then
+            if [ ! -f "boot.img" ]; then
+              ./tools/payload_dumper.py --out . --images boot payload.bin
             fi
-            gh release create "$TAG_NAME" ${VERSION_NAME}.zip
+            7z a "Boot_img_${FIRMWARE_NAME}.zip" boot.img
+            rm boot.img
+            if ! git ls-remote --tags origin | grep -q "Boot_img"; then
+              git tag "Boot_img"
+              git push origin "Boot_img"
+            fi
+            if ! gh release view "Boot_img"; then
+              gh release create Boot_img --title "Boot_img" --notes "Boot_img"
+            fi          
+            gh release upload Boot_img "Boot_img_${FIRMWARE_NAME}.zip" --clobber
           fi
 
-          if [ "$TYPE" = "boot" ] || [ "$TYPE" = "both" ]; then
-            TAG_NAME="boot"
-            if ! git fetch --tags && git tag | grep -q "$TAG_NAME"; then
-              git tag $TAG_NAME
-              git push origin $TAG_NAME
+          if [ "$SETTINGS_APK" == "true" ]; then
+            ./tools/payload_dumper.py --out . --images system_ext payload.bin
+            sudo mkdir -p /mnt/priv-app/Settings && sudo chmod -R 777 /mnt && 7z x system_ext.img -o/mnt -y && sudo cp /mnt/priv-app/Settings/Settings.apk . && echo "method 1 used" || (./tools/extract.erofs -i system_ext.img -x -o . && cp system_ext/priv-app/Settings/Settings.apk . && echo "method 2 used" || (echo "both methods failed" && exit 1))
+            7z a "Settings_apk_${FIRMWARE_NAME}.zip" Settings.apk
+            rm Settings.apk
+            if ! git ls-remote --tags origin | grep -q "settings_apk"; then
+              git tag "settings_apk"
+              git push origin "settings_apk"
             fi
-            gh release create "$TAG_NAME" boot-${VERSION}.zip
+            if ! gh release view "settings_apk"; then
+              gh release create settings_apk --title "settings_apk" --notes "settings_apk"
+            fi          
+            gh release upload settings_apk "Settings_apk_${FIRMWARE_NAME}.zip" --clobber
           fi
