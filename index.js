@@ -19,7 +19,7 @@ async function handleRequest(request) {
       return new Response("The provided URL is not accessible.", { status: 400 });
     }
   } catch (error) {
-    console.error("Error while checking the URL:", error);  // Log the error details for debugging
+    console.error("Error while checking the URL:", error);
     return new Response(`An error occurred while checking the URL accessibility: ${error.message}`, { status: 500 });
   }
 
