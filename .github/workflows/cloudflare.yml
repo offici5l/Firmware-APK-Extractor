@@ -1,9 +1,6 @@
 name: cloudflare
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 env:
