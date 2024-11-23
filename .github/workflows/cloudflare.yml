@@ -1,0 +1,29 @@
+name: cloudflare
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GTOKEN_ACTION }}
+  GITHUB_ACTIONS_URL: "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches"
+
+
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
+          secrets: |
+            GITHUB_TOKEN
+            GITHUB_ACTIONS_URL
