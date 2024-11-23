@@ -8,5 +8,5 @@ ___
 - Extract boot.img from the firmware.zip
 
 ```
-curl -sX POST https://fce.offici5l.workers.dev -d '{"url": "her url .zip", "get": "her boot_img or settings_apk"}'
+curl -sX POST -d '{"url": "her url .zip", "get": "her boot_img or settings_apk"}' https://fce.offici5l.workers.dev
 ```
