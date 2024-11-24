@@ -1,4 +1,4 @@
-name: Dynamic Job Example
+name: Deploy Workflow
 
 on:
   workflow_dispatch:
@@ -18,6 +18,3 @@ jobs:
       - name: Deploy application
         run: |
           echo "Deploying version ${{ github.event.inputs.deploy_version }}"
-
-
-    run_name: "Deploy to version ${{ github.event.inputs.deploy_version }}"
