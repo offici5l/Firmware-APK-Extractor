@@ -1,0 +1,19 @@
+name: Conditional Steps Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      step_name:
+        description: 'Enter step name'
+        required: true
+        default: 'DefaultStep'
+
+jobs:
+  FCE:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: ${{ github.event.inputs.step_name }}
+        run: echo "This is the custom step named: ${{ github.event.inputs.step_name }}"
