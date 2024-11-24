@@ -1,22 +1,23 @@
-name: Deployment Workflow - ${{ github.event.inputs.deploy_version }}
+name: Dynamic Job Example
 
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Choose environment'
-        required: true
-        default: 'production'
       deploy_version:
         description: 'Version to deploy'
         required: true
+        default: '1.0'
 
 jobs:
   build:
-    runs-on: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    name: Build Version ${{ github.event.inputs.deploy_version }} 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Deploy application
         run: |
           echo "Deploying version ${{ github.event.inputs.deploy_version }}"
+
+
+    run_name: "Deploy to version ${{ github.event.inputs.deploy_version }}"
