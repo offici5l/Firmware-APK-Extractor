@@ -1,7 +1,7 @@
 async function checkUrlAccessibility(url) {
   const response = await fetch(url, { method: 'HEAD' });
   if (!response.ok) {
-    throw new Error('URL is not accessible');
+    throw new Error('url is not accessible');
   }
 }
 
@@ -9,25 +9,25 @@ async function handleRequest(request) {
   const { url, get } = await request.json();
 
   if (!url) {
-    return new Response("Missing URL parameter", { status: 400 });
+    return new Response("\nMissing 'url' parameter\n", { status: 400 });
   }
 
   if (!get) {
-    return new Response("Missing 'get' parameter", { status: 400 });
+    return new Response("\nMissing 'get' parameter\n", { status: 400 });
   }
 
   if (get !== "boot_img" && get !== "settings_apk") {
-    return new Response("Invalid 'get' parameter. Only 'boot_img' and 'settings_apk' are allowed.", { status: 400 });
+    return new Response("\nOnly 'boot_img' and 'settings_apk' are allowed.\n", { status: 400 });
   }
 
   if (!url.endsWith(".zip")) {
-    return new Response("Invalid URL. Only .zip files are supported.", { status: 400 });
+    return new Response("\nOnly .zip url are supported.\n", { status: 400 });
   }
 
   try {
     await checkUrlAccessibility(url);
   } catch (error) {
-    return new Response("The provided URL is not accessible.", { status: 400 });
+    return new Response("\nThe provided URL is not accessible.\n", { status: 400 });
   }
 
   const fileName = url.split('/').pop();
