@@ -43,6 +43,7 @@ async function handleRequest(request) {
   } catch (error) {
     const data = { ref: "main", inputs: { get, url, track } };
     console.log("test");
+    console.log(data);
     
     try {
       console.log("test2");
