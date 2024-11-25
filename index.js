@@ -33,6 +33,7 @@ async function handleRequest(request) {
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
   const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + fileName;
+  console.log(track);
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
 
   try {
@@ -40,8 +41,7 @@ async function handleRequest(request) {
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
   } catch (error) {
     const data = { ref: "main", inputs: { get, url, track } };
-    Response("data:", data);
-
+    
     try {
       const githubResponse = await fetch(`${GITHUB_ACTIONS_URL}/dispatches`, {
         method: "POST",
@@ -108,11 +108,9 @@ async function handleRequest(request) {
         })();
       } else {
         const errorText = await githubResponse.text();
-        console.log(`Error from GitHub: ${errorText}`);
         return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
       }
     } catch (error) {
-      console.log("Error:", error);
       return new Response("Error while sending request to GitHub Actions.1", { status: 500 });
     }
   }
