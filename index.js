@@ -1,4 +1,5 @@
 const GITHUB_TOKEN = globalThis.GITHUB_TOKEN;
+console.log("GITHUB_TOKEN:", GITHUB_TOKEN);
 const GITHUB_ACTIONS_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml";
 const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
 
