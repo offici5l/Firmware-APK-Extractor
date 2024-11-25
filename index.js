@@ -43,11 +43,12 @@ async function handleRequest(request) {
     const data = { ref: "main", inputs: { get, url, track } };
     console.log("data");
     console.log(data);
-    console.log("GITHUB_ACTIONS_URL");
-    console.log(`${GITHUB_ACTIONS_URL}/dispatches`);
+    const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
+    console.log("ONE_URL");
+    console.log(ONE_URL);
     
     try {
-      const githubResponse = await fetch(`${GITHUB_ACTIONS_URL}/dispatches`, {
+      const githubResponse = await fetch(`${ONE_URL}`, {
         method: "POST",
         headers: {
           "Authorization": `token ${GITHUB_TOKEN}`,
