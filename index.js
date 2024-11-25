@@ -41,8 +41,10 @@ async function handleRequest(request) {
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
   } catch (error) {
     const data = { ref: "main", inputs: { get, url, track } };
+    console.log("test");
     
     try {
+      console.log("test2");
       const githubResponse = await fetch(`${GITHUB_ACTIONS_URL}/dispatches`, {
         method: "POST",
         headers: {
@@ -110,7 +112,6 @@ async function handleRequest(request) {
         return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
       }
     } catch (error) {
-      console.log(error);
       const errorText = await githubResponse.text();
       return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
     }
