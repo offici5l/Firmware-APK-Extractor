@@ -32,7 +32,7 @@ async function handleRequest(request) {
 
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
-    const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + fileName;
+  const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + fileName;
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
 
   try {
@@ -114,4 +114,8 @@ async function handleRequest(request) {
   }
 }
 
-addEventListener('fetch', event => event.respondWith(handleRequest(event.request)));
+export default {
+  async fetch(req) {
+    return handleRequest(req);
+  }
+};
