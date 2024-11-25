@@ -5,7 +5,7 @@ async function checkUrlAccessibility(url) {
   }
 }
 
-const track = "\"" + new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now() + "\"";
+const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
 
 async function handleRequest(request) {
   const requestBody = await request.text();
@@ -34,7 +34,6 @@ async function handleRequest(request) {
 
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
-  console.log("testt");
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
 
   try {
@@ -42,11 +41,12 @@ async function handleRequest(request) {
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
   } catch (error) {
     const data = { ref: "main", inputs: { get, url, track } };
-    console.log("test");
+    console.log("data");
     console.log(data);
+    console.log("GITHUB_ACTIONS_URL");
+    console.log(`${GITHUB_ACTIONS_URL}/dispatches`);
     
     try {
-      console.log("test2");
       const githubResponse = await fetch(`${GITHUB_ACTIONS_URL}/dispatches`, {
         method: "POST",
         headers: {
@@ -57,7 +57,8 @@ async function handleRequest(request) {
         },
         body: JSON.stringify(data)
       });
-
+      console.log("githubResponse");
+      console.log(githubResponse);
       if (githubResponse.ok) {
         const RUNS_URL = `${GITHUB_ACTIONS_URL}/runs`;
         const headers = {
