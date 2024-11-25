@@ -1,6 +1,6 @@
 const GITHUB_TOKEN = globalThis.GITHUB_TOKEN;
 const GITHUB_ACTIONS_URL = globalThis.GITHUB_ACTIONS_URL;
-console.log(GITHUB_ACTIONS_URL);
+
 const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
 
 async function checkUrlAccessibility(url) {
@@ -44,9 +44,11 @@ async function handleRequest(request) {
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
   } catch (error) {
     const data = { ref: "main", inputs: { get, url } };
+    console.log(GITHUB_ACTIONS_URL);
     console.log(data);
     const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
     console.log(ONE_URL);
+
 
     try {
       const githubResponse = await fetch(ONE_URL, {
