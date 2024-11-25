@@ -18,7 +18,7 @@ env:
 jobs:
   FCE:
     runs-on: ubuntu-latest
-    name: ${{ github.event.inputs.Track }} 
+    name: ${{ github.event.inputs.track }} 
     steps:
 
       - name: checkout
