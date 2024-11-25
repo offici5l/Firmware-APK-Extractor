@@ -114,7 +114,7 @@ async function handleRequest(request) {
         return new Response(`Error from GitHub2`);
       }
     } catch (error) {
-      console.log((error);
+      console.log(error);
       return new Response(`Error from GitHub1`);
     }
   }
