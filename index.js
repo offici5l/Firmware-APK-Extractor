@@ -41,14 +41,12 @@ async function handleRequest(request) {
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
   } catch (error) {
     const data = { ref: "main", inputs: { get, url } };
-    console.log("data");
     console.log(data);
-    const ONE_URL = `https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches`;
-    console.log("ONE_URL");
+    const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
     console.log(ONE_URL);
     
     try {
-      const githubResponse = await fetch(`${ONE_URL}`, {
+      const githubResponse = await fetch(ONE_URL, {
         method: "POST",
         headers: {
           "Authorization": `token ${GITHUB_TOKEN}`,
@@ -116,6 +114,7 @@ async function handleRequest(request) {
         return new Response(`Error from GitHub2`);
       }
     } catch (error) {
+      console.log((error);
       return new Response(`Error from GitHub1`);
     }
   }
