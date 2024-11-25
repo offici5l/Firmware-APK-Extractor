@@ -1,5 +1,3 @@
-import { createHash } from "crypto";
-
 async function checkUrlAccessibility(url) {
   const response = await fetch(url, { method: 'HEAD' });
   if (!response.ok) {
@@ -17,7 +15,6 @@ async function handleRequest(request) {
 
   const get = parts[0];
   const url = parts[1];
-  const track = createHash('sha256').update(`${new Date().toISOString()}-${new Date().getSeconds()}-${url}`).digest('hex').slice(0, 16);
 
   if (get !== "boot_img" && get !== "settings_apk") {
     return new Response("\nOnly 'boot_img' and 'settings_apk' are allowed.\n", { status: 400 });
@@ -35,6 +32,7 @@ async function handleRequest(request) {
 
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
+    const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + fileName;
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
 
   try {
