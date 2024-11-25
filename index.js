@@ -42,7 +42,7 @@ async function handleRequest(request) {
     const data = { ref: "main", inputs: { get, url, track } };
 
     try {
-      const githubResponse = await fetch(GITHUB_ACTIONS_URL, {
+      const githubResponse = await fetch(`${GITHUB_ACTIONS_URL}/dispatches`, {
         method: "POST",
         headers: {
           "Authorization": `token ${GITHUB_TOKEN}`,
