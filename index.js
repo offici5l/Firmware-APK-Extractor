@@ -9,8 +9,6 @@ async function checkUrlAccessibility(url) {
   }
 }
 
-const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
-
 async function handleRequest(request) {
   const requestBody = await request.text();
   const parts = requestBody.split(" ");
