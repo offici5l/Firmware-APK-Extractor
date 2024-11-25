@@ -1,7 +1,6 @@
 
 const GITHUB_ACTIONS_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml";
 const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
 
 async function checkUrlAccessibility(url) {
@@ -39,7 +38,8 @@ async function handleRequest(request) {
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
-
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  console.log("GITHUB Token: ", GITHUB_TOKEN);
   try {
     await checkUrlAccessibility(finalUrl);
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
