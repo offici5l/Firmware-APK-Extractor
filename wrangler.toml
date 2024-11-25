@@ -2,5 +2,7 @@ name = "fce"
 compatibility_date = "2024-11-23"
 main = "index.js"
 compatibility_flags = ["nodejs_compat"]
-[observability.logs]
+
+[observability]
 enabled = true
+logs = { enabled = true }
