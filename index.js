@@ -116,7 +116,7 @@ const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSec
       return new Response(`Error from GitHub1`);
     }
   }
-}
+
 
 export default {
   async fetch(req) {
