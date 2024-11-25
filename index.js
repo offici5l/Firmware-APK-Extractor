@@ -57,6 +57,7 @@ async function handleRequest(request) {
         body: JSON.stringify(data)
       });
 
+      
       if (githubResponse.ok) {
         console.log("test1");
         const RUNS_URL = `${GITHUB_ACTIONS_URL}/runs`;
@@ -111,6 +112,8 @@ async function handleRequest(request) {
           }
         })();
       } else {
+        const githubResponseText = await githubResponse.text();
+        console.log(`GitHub Response: ${githubResponseText}`);
         return new Response(`Error from GitHub2`);
       }
     } catch (error) {
