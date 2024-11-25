@@ -110,7 +110,7 @@ async function handleRequest(request) {
         return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
       }
     } catch (error) {
-      console.error("Error during GitHub API request:", error);
+      console.log(error);
       const errorText = await githubResponse.text();
       return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
     }
