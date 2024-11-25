@@ -7,7 +7,7 @@ on:
         required: true
       url:
         required: true
-      Track:
+      track:
         required: false
 
 env:
