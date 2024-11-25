@@ -1,11 +1,5 @@
-async function checkUrlAccessibility(url) {
-  const response = await fetch(url, { method: 'HEAD' });
-  if (!response.ok) {
-    throw new Error('URL is not accessible');
-  }
-}
-
-const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
+const GITHUB_TOKEN = globalThis.GITHUB_TOKEN;
+const GITHUB_ACTIONS_URL = globalThis.GITHUB_ACTIONS_URL;
 
 async function handleRequest(request) {
   const requestBody = await request.text();
@@ -44,7 +38,7 @@ async function handleRequest(request) {
     console.log(data);
     const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
     console.log(ONE_URL);
-    
+
     try {
       const githubResponse = await fetch(ONE_URL, {
         method: "POST",
