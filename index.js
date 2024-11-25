@@ -54,7 +54,62 @@ async function handleRequest(request) {
       });
 
       if (githubResponse.ok) {
-        return new Response(`\nresult: success\nlink will be available at: ${finalUrl}\n`, { status: 200 });
+        const axios = require("axios");
+
+        const BASE_URL = GITHUB_ACTIONS_URL.split('/workflows')[0];
+        const RUNS_URL = `${GITHUB_ACTIONS_URL}/runs`;
+
+        const headers = {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: "application/vnd.github+json",
+        };
+
+        async function fetchIDs() {
+          while (true) {
+            try {
+              const response = await axios.get(RUNS_URL, { headers });
+              if (response.data && response.data.workflow_runs) {
+                const ids = response.data.workflow_runs.map(run => run.id);
+                for (const id of ids) {
+                  const JOBS_URL = `${RUNS_URL}/runs/${id}/jobs`;
+                  try {
+                    const jobsResponse = await axios.get(JOBS_URL, { headers });
+                    const jobName = jobsResponse.data.jobs[0].name;
+                    
+                    if (jobName === track) {
+                      const steps = jobsResponse.data.jobs[0].steps;
+                      if (steps.length > 0) {
+                        return { steps, JOBS_URL }; 
+                      }
+                    }
+                  } catch (error) {
+                    console.error("Error fetching job details: ", error);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching data: ", error);
+            }
+            await new Promise(resolve => setTimeout(resolve, 3000)); 
+          }
+        }
+
+        (async () => {
+          const result = await fetchIDs();
+          for (const step of result.steps) {
+            process.stdout.write(`step: ${step.name} ==> status: ${step.status}... `);
+            while (step.status !== "completed") {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+            process.stdout.write(`\rstep: ${step.name} ==> conclusion: ${step.conclusion}\n`);
+            if (step.name === "upload") {
+              if (step.conclusion === "success") {
+                console.log(`\nlink: ${finalUrl}\n`);
+                return;
+              }
+            }
+          }
+        })();
       } else {
         const errorText = await githubResponse.text();
         return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
