@@ -5,8 +5,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GTOKEN_ACTION }}
-  GITHUB_ACTIONS_URL: "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml"
-
 
 jobs:
   cloudflare:
@@ -23,4 +21,3 @@ jobs:
           command: deploy
           secrets: |
             GITHUB_TOKEN
-            GITHUB_ACTIONS_URL
