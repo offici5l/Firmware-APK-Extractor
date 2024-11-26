@@ -2,15 +2,18 @@ export default {
   async fetch(req, env) {
     const requestBody = await req.text();
     const parts = requestBody.split(" ");
+    
     if (parts.length < 2) {
       return new Response("\nMissing parameters!\n\nUsage: \ncurl -d \"<get> <url>\" <worker-url>\n\nExample:\n curl -d \"boot_img https://example.com/file.zip\" fce.offici5l.workers.dev\n\n", { status: 400 });
     }
 
     const get = parts[0];
     const url = parts[1];
+    
     if (get !== "boot_img" && get !== "settings_apk") {
       return new Response("\nOnly 'boot_img' and 'settings_apk' are allowed.\n", { status: 400 });
     }
+    
     if (!url.endsWith(".zip")) {
       return new Response("\nOnly .zip URLs are supported.\n", { status: 400 });
     }
@@ -28,26 +31,33 @@ export default {
       const finalUrlResponse = await fetch(finalUrl, { method: 'HEAD' });
       if (finalUrlResponse.ok) {
         return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
+      } else {
+        return new Response("\nThe final URL is not available.\n", { status: 400 });
       }
     } catch (error) {
       const track = Date.now();
       const data = { ref: "main", inputs: { get, url, track } };
-      const githubResponse = await fetch("https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches", {
-        method: "POST",
-        headers: {
-          "Authorization": `token ${env.GTKK}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-          "User-Agent": "Cloudflare Worker"
-        },
-        body: JSON.stringify(data)
-      });
+      
+      try {
+        const githubResponse = await fetch("https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches", {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${env.GTKK}`,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+            "User-Agent": "Cloudflare Worker"
+          },
+          body: JSON.stringify(data)
+        });
 
-      if (githubResponse.ok) {
-        return new Response(`\nresult: It will be available\nlink: ${finalUrl}\n`, { status: 200 });
-      } else {
-        const githubResponseText = await githubResponse.text();
-        return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
+        if (githubResponse.ok) {
+          return new Response(`\nresult: It will be available\nlink: ${finalUrl}\n`, { status: 200 });
+        } else {
+          const githubResponseText = await githubResponse.text();
+          return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
+        }
+      } catch (error) {
+        return new Response(`Error communicating with GitHub: ${error.message}`, { status: 500 });
       }
     }
   }
