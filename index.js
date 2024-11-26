@@ -31,10 +31,7 @@ export default {
       const finalUrlResponse = await fetch(finalUrl, { method: 'HEAD' });
       if (finalUrlResponse.ok) {
         return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
-      } else {
-        return new Response("\nThe final URL is not available.\n", { status: 400 });
-      }
-    } catch (error) {
+      } 
       const track = Date.now();
       const data = { ref: "main", inputs: { get, url, track } };
       
