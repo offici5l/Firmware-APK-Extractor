@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GTOKEN_ACTION }}
+  token: ${{ secrets.GTOKEN_ACTION }}
 
 jobs:
   cloudflare:
@@ -20,4 +20,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: deploy
           secrets: |
-            GITHUB_TOKEN
+            token
