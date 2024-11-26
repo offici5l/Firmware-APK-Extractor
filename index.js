@@ -1,114 +1,57 @@
-const GITHUB_ACTIONS_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml";
-const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
-
 const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
-
-async function checkUrlAccessibility(url) {
-  const response = await fetch(url, { method: 'HEAD' });
-  if (!response.ok) {
-    throw new Error('URL is not accessible');
-  }
-}
-
-async function fetchIDs(RUNS_URL, headers) {
-  while (true) {
-    const response = await fetch(RUNS_URL, { headers });
-    if (!response.ok) {
-      console.error("Request failed with status:", response.status);
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      continue;
-    }
-    const textResponse = await response.text();
-    try {
-      const responseBody = JSON.parse(textResponse);
-      if (responseBody && responseBody.workflow_runs) {
-        const ids = responseBody.workflow_runs.map(run => run.id);
-        for (const id of ids) {
-          const JOBS_URL = `${RUNS_URL}/runs/${id}/jobs`;
-          const jobsResponse = await fetch(JOBS_URL, { headers });
-          if (!jobsResponse.ok) {
-            console.error("Failed to fetch jobs with status:", jobsResponse.status);
-            continue;
-          }
-          const jobsResponseBody = await jobsResponse.json();
-          const jobName = jobsResponseBody.jobs[0].name;
-          if (jobName === track) {
-            const steps = jobsResponseBody.jobs[0].steps;
-            if (steps.length > 0) {
-              return { steps, JOBS_URL };
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing JSON response:", error, textResponse);
-    }
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
-}
-
-async function handleRequest(request, env) {
-  const requestBody = await request.text();
-  const parts = requestBody.split(" ");
-  if (parts.length < 2) {
-    return new Response("\nMissing parameters!\n\nUsage: \ncurl -d \"<get> <url>\" <worker-url>\n\nExample:\n curl -d \"boot_img https://example.com/file.zip\" fce.offici5l.workers.dev\n\n", { status: 400 });
-  }
-  const get = parts[0];
-  const url = parts[1];
-  if (get !== "boot_img" && get !== "settings_apk") {
-    return new Response("\nOnly 'boot_img' and 'settings_apk' are allowed.\n", { status: 400 });
-  }
-  if (!url.endsWith(".zip")) {
-    return new Response("\nOnly .zip URLs are supported.\n", { status: 400 });
-  }
-  try {
-    await checkUrlAccessibility(url);
-  } catch (error) {
-    return new Response("\nThe provided URL is not accessible.\n", { status: 400 });
-  }
-  const fileName = url.split('/').pop();
-  const combinedBasename = `${get}_${fileName}`;
-  const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
-  const GTKK = env.GTKK;
-  try {
-    await checkUrlAccessibility(finalUrl);
-    return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
-  } catch (error) {
-    const data = { ref: "main", inputs: { get, url, track } };
-    const githubResponse = await fetch(ONE_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `token ${GTKK}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-        "User-Agent": "Cloudflare Worker"
-      },
-      body: JSON.stringify(data)
-    });
-    if (githubResponse.ok) {
-      const RUNS_URL = `${GITHUB_ACTIONS_URL}/runs`;
-      const headers = {
-        Authorization: `Bearer ${GTKK}`,
-        Accept: "application/vnd.github+json",
-      };
-      const result = await fetchIDs(RUNS_URL, headers);
-      for (const step of result.steps) {
-        while (step.status !== "completed") {
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-        if (step.name === "upload" && step.conclusion === "success") {
-          return new Response(`\nlink: ${finalUrl}\n`, { status: 200 });
-        }
-      }
-    } else {
-      const githubResponseText = await githubResponse.text();
-      return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
-    }
-  }
-}
 
 export default {
   async fetch(req, env) {
-    return handleRequest(req, env);
+    const requestBody = await req.text();
+    const parts = requestBody.split(" ");
+    if (parts.length < 2) {
+      return new Response("\nMissing parameters!\n\nUsage: \ncurl -d \"<get> <url>\" <worker-url>\n\nExample:\n curl -d \"boot_img https://example.com/file.zip\" fce.offici5l.workers.dev\n\n", { status: 400 });
+    }
+
+    const get = parts[0];
+    const url = parts[1];
+    if (get !== "boot_img" && get !== "settings_apk") {
+      return new Response("\nOnly 'boot_img' and 'settings_apk' are allowed.\n", { status: 400 });
+    }
+    if (!url.endsWith(".zip")) {
+      return new Response("\nOnly .zip URLs are supported.\n", { status: 400 });
+    }
+
+    const response = await fetch(url, { method: 'HEAD' });
+    if (!response.ok) {
+      return new Response("\nThe provided URL is not accessible.\n", { status: 400 });
+    }
+
+    const fileName = url.split('/').pop();
+    const combinedBasename = `${get}_${fileName}`;
+    const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
+    const GTKK = env.GTKK;
+    const GITHUB_ACTIONS_URL = env.GITHUB_ACTIONS_URL;
+
+    try {
+      const finalUrlResponse = await fetch(finalUrl, { method: 'HEAD' });
+      if (finalUrlResponse.ok) {
+        return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
+      }
+    } catch (error) {
+      const data = { ref: "main", inputs: { get, url, track } };
+      const githubResponse = await fetch(GITHUB_ACTIONS_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `token ${GTKK}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+          "User-Agent": "Cloudflare Worker"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (githubResponse.ok) {
+        return new Response("\nRequest was successfully sent to GitHub.\n", { status: 200 });
+      } else {
+        const githubResponseText = await githubResponse.text();
+        return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
+      }
+    }
   }
 };
