@@ -1,5 +1,5 @@
 addEventListener("fetch", event => {
-  const token = env.token;
+  const token = event.env.token;
   event.respondWith(new Response(`Token is: ${token}`, { status: 200 }));
 });
 
