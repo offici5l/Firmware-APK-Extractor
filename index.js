@@ -30,7 +30,7 @@ export default {
         return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
       }
     } catch (error) {
-      const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
+      const track = Date.now();
       const data = { ref: "main", inputs: { get, url, track } };
       const githubResponse = await fetch("https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches", {
         method: "POST",
@@ -44,7 +44,7 @@ export default {
       });
 
       if (githubResponse.ok) {
-        return new Response("\nRequest was successfully sent to GitHub.\n", { status: 200 });
+        return new Response(`\nresult: It will be available\nlink: ${finalUrl}\n`, { status: 200 });
       } else {
         const githubResponseText = await githubResponse.text();
         return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
