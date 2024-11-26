@@ -10,7 +10,8 @@ async function checkUrlAccessibility(url) {
   }
 }
 
-async function handleRequest(request) {
+async function handleRequest(request, env) {
+  const GTKK = env.GTKK;
   const requestBody = await request.text();
   const parts = requestBody.split(" ");
 
@@ -38,7 +39,6 @@ async function handleRequest(request) {
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
-  const GTK = globalThis.GTK;
 
   try {
     await checkUrlAccessibility(finalUrl);
@@ -57,19 +57,16 @@ async function handleRequest(request) {
         body: JSON.stringify(data)
       });
 
-      
       if (githubResponse.ok) {
-        console.log("test1");
         const RUNS_URL = `${GITHUB_ACTIONS_URL}/runs`;
         const headers = {
           Authorization: `Bearer ${GTKK}`,
           Accept: "application/vnd.github+json",
         };
-        console.log("test2");
+
         async function fetchIDs() {
           while (true) {
             try {
-              console.log("Fetching runs from GitHub...");
               const response = await fetch(RUNS_URL, { headers });
               const responseBody = await response.json();
               if (responseBody && responseBody.workflow_runs) {
@@ -83,7 +80,7 @@ async function handleRequest(request) {
                   if (jobName === track) {
                     const steps = jobsResponseBody.jobs[0].steps;
                     if (steps.length > 0) {
-                      return { steps, JOBS_URL }; 
+                      return { steps, JOBS_URL };
                     }
                   }
                 }
@@ -91,40 +88,34 @@ async function handleRequest(request) {
             } catch (error) {
               console.error("Error fetching data: ", error);
             }
-            await new Promise(resolve => setTimeout(resolve, 3000)); 
+            await new Promise(resolve => setTimeout(resolve, 3000));
           }
         }
 
         (async () => {
           const result = await fetchIDs();
           for (const step of result.steps) {
-            console.log(`Checking step: ${step.name} ==> status: ${step.status}`);
             while (step.status !== "completed") {
               await new Promise(resolve => setTimeout(resolve, 3000));
             }
-            console.log(`Step: ${step.name} ==> conclusion: ${step.conclusion}`);
-            if (step.name === "upload") {
-              if (step.conclusion === "success") {
-                console.log(`\nlink: ${finalUrl}\n`);
-                return;
-              }
+            if (step.name === "upload" && step.conclusion === "success") {
+              console.log(`\nlink: ${finalUrl}\n`);
+              return;
             }
           }
         })();
       } else {
         const githubResponseText = await githubResponse.text();
-        console.log(`GitHub Response: ${githubResponseText}`);
-        return new Response(`Error from GitHub2`);
+        return new Response(`Error from GitHub2: ${githubResponseText}`);
       }
     } catch (error) {
-      console.log(error);
-      return new Response(`Error from GitHub1`);
+      return new Response(`Error from GitHub1: ${error.message}`);
     }
   }
 }
 
 export default {
-  async fetch(req) {
-    return handleRequest(req);
+  async fetch(req, env) {
+    return handleRequest(req, env);
   }
 };
