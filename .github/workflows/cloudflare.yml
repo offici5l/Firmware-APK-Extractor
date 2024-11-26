@@ -21,3 +21,5 @@ jobs:
           command: deploy
           secrets: |
             token
+        env:
+          token: ${{ secrets.GTOKEN_ACTION }}
