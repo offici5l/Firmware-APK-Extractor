@@ -1,8 +1,3 @@
-
-const GITHUB_ACTIONS_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml";
-const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
-const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
-
 async function checkUrlAccessibility(url) {
   const response = await fetch(url, { method: 'HEAD' });
   if (!response.ok) {
@@ -38,8 +33,10 @@ async function handleRequest(request) {
   const fileName = url.split('/').pop();
   const combinedBasename = `${get}_${fileName}`;
   const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
-  const token = GITHUB_TOKEN;
-  console.log("GITHUB Token: ", token);
+  const GITHUB_ACTIONS_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml";
+  const ONE_URL = `${GITHUB_ACTIONS_URL}/dispatches`;
+  const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
+
   try {
     await checkUrlAccessibility(finalUrl);
     return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
@@ -112,9 +109,8 @@ async function handleRequest(request) {
           }
         })();
       } else {
-        const githubResponseText = await githubResponse.text();
-        console.log(`GitHub Response: ${githubResponseText}`);
-        return new Response(`Error from GitHub2`);
+        const errorText = await githubResponse.text();
+        return new Response(`Error from GitHub: ${errorText}`, { status: 500 });
       }
     } catch (error) {
       console.log(error);
@@ -128,3 +124,6 @@ export default {
     return handleRequest(req);
   }
 };
+
+
+        
