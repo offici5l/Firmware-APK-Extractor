@@ -1,5 +1,5 @@
 addEventListener("fetch", event => {
-  const token = event.env.GITHUB_TOKEN;
+  const token = GTK;
   event.respondWith(new Response(`Token is: ${token}`, { status: 200 }));
 });
 
