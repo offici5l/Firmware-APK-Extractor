@@ -1,5 +1,3 @@
-const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
-
 export default {
   async fetch(req, env) {
     const requestBody = await req.text();
@@ -25,8 +23,6 @@ export default {
     const fileName = url.split('/').pop();
     const combinedBasename = `${get}_${fileName}`;
     const finalUrl = `https://github.com/offici5l/Firmware-Content-Extractor/releases/download/${get}/${combinedBasename}`;
-    const GTKK = env.GTKK;
-    const GITHUB_ACTIONS_URL = env.GITHUB_ACTIONS_URL;
 
     try {
       const finalUrlResponse = await fetch(finalUrl, { method: 'HEAD' });
@@ -34,11 +30,12 @@ export default {
         return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
       }
     } catch (error) {
+      const track = new Date().toISOString().replace(/[^\w]/g, '') + new Date().getSeconds() + Math.floor(Math.random() * 10000) + Date.now();
       const data = { ref: "main", inputs: { get, url, track } };
-      const githubResponse = await fetch(GITHUB_ACTIONS_URL, {
+      const githubResponse = await fetch("https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/dispatches", {
         method: "POST",
         headers: {
-          "Authorization": `token ${GTKK}`,
+          "Authorization": `token ${env.GTKK}`,
           "Accept": "application/vnd.github.v3+json",
           "Content-Type": "application/json",
           "User-Agent": "Cloudflare Worker"
