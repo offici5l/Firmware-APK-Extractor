@@ -1,3 +1,13 @@
+export default {
+    async fetch(request, env) {
+        if (!env.GTK) {
+            return new Response('GTK is not defined', { status: 500 });
+        }
+        return new Response(`GTK Value: ${env.GTK}`);
+    }
+}
+
+
 async function checkUrlAccessibility(url) {
   const response = await fetch(url, { method: 'HEAD' });
   if (!response.ok) {
