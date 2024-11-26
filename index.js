@@ -1,5 +1,5 @@
 addEventListener("fetch", event => {
-  const token = event.env.token;
+  const token = event.env.GITHUB_TOKEN;
   event.respondWith(new Response(`Token is: ${token}`, { status: 200 }));
 });
 
