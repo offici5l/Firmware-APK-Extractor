@@ -4,14 +4,14 @@ addEventListener("fetch", event => {
 
 async function handleRequest(request) {
   if (request.method === "POST") {
-    const requestBody = await request.text();
-    const aname = requestBody.trim();
-
-    if (!aname) {
-      return new Response("Missing 'aname' parameter", { status: 400 });
-    }
-
     try {
+      const requestBody = await request.text();
+      const anam = requestBody.trim();
+
+      if (!anam) {
+        return new Response("Missing 'anam' parameter", { status: 400 });
+      }
+
       const jobsResponse = await fetch('https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/runs');
       const jobsData = await jobsResponse.json();
       const jobUrls = jobsData.workflow_runs.map(run => run.url + "/jobs");
@@ -22,7 +22,7 @@ async function handleRequest(request) {
         const jobs = jobJson.jobs;
 
         for (const job of jobs) {
-          if (job.name === aname) {
+          if (job.name === anam) {
             while (true) {
               const uploadStep = job.steps.find(step => step.name === "upload");
               if (uploadStep) {
