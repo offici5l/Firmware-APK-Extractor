@@ -26,13 +26,13 @@ export default {
       const jobUrls = [];
       data.workflow_runs.forEach(run => {
         const urlWithJob = run.url + "/jobs";
+        console.log('urlWithJob:', urlWithJob);
         if (urlWithJob.includes(JOB_NAME)) {
           jobUrls.push(urlWithJob);
         }
       });
 
       if (jobUrls.length === 0) {
-        console.log('jobUrls:', jobUrls);
         return new Response("Job not found", { status: 404 });
       }
 
