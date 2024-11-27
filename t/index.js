@@ -9,7 +9,6 @@ export default {
     const BASE_URL = "https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/runs";
 
     try {
-      // جلب جميع تشغيلات Workflow
       const response = await fetch(BASE_URL, {
         method: "GET",
         headers: {
