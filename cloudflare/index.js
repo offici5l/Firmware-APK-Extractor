@@ -31,7 +31,7 @@ export default {
       const finalUrlResponse = await fetch(finalUrl, { method: 'HEAD' });
       if (finalUrlResponse.ok) {
         return new Response(`\nresult: available\nlink: ${finalUrl}\n`, { status: 200 });
-      } 
+      }
 
       const track = Date.now().toString();
       const data = { ref: "main", inputs: { get, url, track } };
@@ -48,12 +48,18 @@ export default {
       });
 
       if (githubResponse.ok) {
-      await fetch("https://fce-conclusion.offici5l.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: track
-      });
-        return new Response(`\nresult: It will be available\nlink: ${finalUrl}\n`, { status: 200 });
+        const fceResponse = await fetch("https://fce-conclusion.offici5l.workers.dev", {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: track
+        });
+
+        if (fceResponse.ok) {
+          const fceResult = await fceResponse.text();
+          return new Response(`\nresult: It will be available\nlink: ${finalUrl}\nResponse: ${fceResult}\n`, { status: 200 });
+        } else {
+          return new Response("Error: Failed to get a valid response from fce-conclusion.", { status: 500 });
+        }
       } else {
         const githubResponseText = await githubResponse.text();
         return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
