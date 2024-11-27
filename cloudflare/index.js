@@ -47,8 +47,10 @@ export default {
         body: JSON.stringify(data)
       });
 
+curl "https://fce-conclusion.offici5l.workers.dev?job_name=Job_Name"
+
       if (githubResponse.ok) {
-        return new Response(`\nresult: It will be available\nlink: ${finalUrl}\ntrack link: fce-conclusion.offici5l.workers.dev?${track}\n`, { status: 200 });
+        return new Response(`\nresult: It will be available\nlink: ${finalUrl}\ntrack link: fce-conclusion.offici5l.workers.dev?job_name=${track}\n`, { status: 200 });
       } else {
         const githubResponseText = await githubResponse.text();
         return new Response(`GitHub Response Error: ${githubResponseText}`, { status: 500 });
