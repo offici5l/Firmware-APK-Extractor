@@ -1,7 +1,7 @@
 export default {
   async fetch(req, env) {
-    const requestBody = await req.text();
-    const JOB_NAME = requestBody.trim();
+    const url = new URL(req.url);
+    const JOB_NAME = url.searchParams.get("job_name")?.trim();
     console.log('JOB_NAME:', JOB_NAME);
 
     const ACCEPT_HEADER = "application/vnd.github.v3+json";
