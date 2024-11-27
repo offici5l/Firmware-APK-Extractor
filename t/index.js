@@ -4,7 +4,7 @@ export default {
       const requestBody = await req.text();
       const TOKEN = env.GTKK;
       const JOB_NAME = requestBody;
-      
+
       const BASE_URL = 'https://api.github.com/repos/offici5l/Firmware-Content-Extractor/actions/workflows/FCE.yml/runs';
       const ACCEPT_HEADER = { 'Accept': 'application/vnd.github+json' };
       const AUTH_HEADER = { 'Authorization': `token ${TOKEN}` };
@@ -12,6 +12,10 @@ export default {
       const runsResponse = await fetch(BASE_URL, {
         headers: { ...ACCEPT_HEADER, ...AUTH_HEADER }
       });
+
+      if (!runsResponse.ok) {
+        return new Response(`Error: Unable to fetch workflow runs`, { status: 500 });
+      }
 
       const runsData = await runsResponse.json();
       const jobUrls = runsData.workflow_runs.map(run => `${run.url}/jobs`);
@@ -21,8 +25,11 @@ export default {
           headers: { ...ACCEPT_HEADER, ...AUTH_HEADER }
         });
 
-        const jobData = await jobResponse.json();
+        if (!jobResponse.ok) {
+          return new Response(`Error: Unable to fetch job data`, { status: 500 });
+        }
 
+        const jobData = await jobResponse.json();
         const job = jobData.jobs.find(j => j.name === JOB_NAME);
 
         if (job) {
