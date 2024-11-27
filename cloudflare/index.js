@@ -48,17 +48,30 @@ export default {
       });
 
       if (githubResponse.ok) {
-        const fceResponse = await fetch("https://fce-conclusion.offici5l.workers.dev", {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: track
-        });
+        // إرسال الطلب إلى fce-conclusion
+        let status;
+        do {
+          const fceResponse = await fetch("https://fce-conclusion.offici5l.workers.dev", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: track
+          });
 
-        if (fceResponse.ok) {
-          const fceResult = await fceResponse.text();
-          return new Response(`\nresult: It will be available\nlink: ${finalUrl}\nResponse: ${fceResult}\n`, { status: 200 });
-        } else {
-          return new Response("Error: Failed to get a valid response from fce-conclusion.", { status: 500 });
+          if (!fceResponse.ok) {
+            return new Response(`Error: Failed to get a valid response from fce-conclusion.`, { status: 500 });
+          }
+
+          status = await fceResponse.text().trim();
+
+          if (status.includes("In progress...")) {
+            await new Promise((resolve) => setTimeout(resolve, 10000)); //
+          }
+        } while (status.includes("In progress..."));
+
+        if (status.includes("success")) {
+          return new Response(`\nresult: It will be available\nlink: ${finalUrl}\nStatus: ${status}\n`, { status: 200 });
+        } else if (status.includes("failure")) {
+          return new Response(`\nresult: Failed to process the request\nStatus: ${status}\n`, { status: 500 });
         }
       } else {
         const githubResponseText = await githubResponse.text();
