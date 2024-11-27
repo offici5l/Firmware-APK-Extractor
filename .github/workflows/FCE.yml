@@ -18,8 +18,7 @@ env:
 jobs:
   FCE:
     runs-on: ubuntu-latest
-    
-    run-name: test to ${{ github.event.inputs.track }} 
+    name: ${{ github.event.inputs.track }} 
 
     steps:
 
