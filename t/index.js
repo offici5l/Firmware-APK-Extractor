@@ -17,7 +17,8 @@ export default {
       });
 
       if (!runsResponse.ok) {
-        return new Response(`Error: Unable to fetch workflow runs`, { status: 500 });
+        const errorResponse = await runsResponse.text();
+        return new Response(`Error: Unable to fetch workflow runs. Status: ${runsResponse.status}`, { status: 500 });
       }
 
       const runsData = await runsResponse.json();
@@ -32,7 +33,8 @@ export default {
         });
 
         if (!jobResponse.ok) {
-          return new Response(`Error: Unable to fetch job data`, { status: 500 });
+          const jobErrorResponse = await jobResponse.text();
+          return new Response(`Error: Unable to fetch job data. Status: ${jobResponse.status}`, { status: 500 });
         }
 
         const jobData = await jobResponse.json();
