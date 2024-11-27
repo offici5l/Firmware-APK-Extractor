@@ -48,7 +48,10 @@ export default {
         const jobData = await jobResponse.json();
         const job = jobData.jobs.find(job => job.name === JOB_NAME);
         if (job) {
-          return new Response(JSON.stringify(jobData), { status: 200 });
+          const stepsText = job.steps.map(step => 
+    `Name: ${step.name}\nStatus: ${step.status}\nConclusion: ${step.conclusion}\n`
+  ).join('\n');
+          return new Response(stepsText, { status: 200, headers: { 'Content-Type': 'text/plain' } });
           console.log('Job found:', job.name);
           const jobConclusion = job.conclusion || "In progress...";
           return new Response(jobConclusion, { status: 200 });
