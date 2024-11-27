@@ -6,19 +6,14 @@ on:
 jobs:
   cloudflare:
     runs-on: ubuntu-latest
+    name: Deploy
     steps:
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Wrangler (latest version)
-        run: npm install -g wrangler@3.90.0
-
-      - name: Deploy to Cloudflare Workers
+      - uses: actions/checkout@v4
+      - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: deploy
+          workingDirectory: cloudflare
           secrets: |
             GTKK
         env:
