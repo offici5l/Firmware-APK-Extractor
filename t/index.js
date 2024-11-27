@@ -48,7 +48,7 @@ export default {
         const jobData = await jobResponse.json();
         const job = jobData.jobs.find(job => job.name === JOB_NAME);
         if (job) {
-          return new Response(`\nJobName: ${job.name}\nJobStatus: ${job.status}\nJobConclusion: ${job.conclusion}\n\nSteps:\n\n` + job.steps.filter(step => ["validate", "download", "boot_img", "settings_apk", "upload"].includes(step.name)).map(step => `Name: ${step.name}\nStatus: ${step.status}\nConclusion: ${step.conclusion}\n`).join('\n'), { status: 200, headers: { 'Content-Type': 'text/plain' } });
+          return new Response(`\nJobName: ${job.name}\nJobStatus: ${job.status}\nJobConclusion: ${job.conclusion}\n\nSteps:\n\n` + job.steps.filter(step => ["validate", "download", "boot_img", "settings_apk", "upload"].includes(step.name)).map(step => `Name: ${step.name}\nStatus: ${step.status}\nConclusion: ${step.conclusion}\n\n`).join('\n'), { status: 200, headers: { 'Content-Type': 'text/plain' } });
         }
       }
       return new Response("Job not found", { status: 404 });
