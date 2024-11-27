@@ -32,7 +32,7 @@ export default {
       });
 
       if (jobUrls.length === 0) {
-        console.log('Workflow Runs:', data.workflow_runs);
+        console.log('jobUrls:', jobUrls);
         return new Response("Job not found", { status: 404 });
       }
 
