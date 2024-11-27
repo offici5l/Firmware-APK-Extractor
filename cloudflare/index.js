@@ -48,6 +48,11 @@ export default {
       });
 
       if (githubResponse.ok) {
+      await fetch("https://fce-conclusion.offici5l.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: track
+      });
         return new Response(`\nresult: It will be available\nlink: ${finalUrl}\n`, { status: 200 });
       } else {
         const githubResponseText = await githubResponse.text();
